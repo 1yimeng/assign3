@@ -14,8 +14,11 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <fstream>
+#include <ctime>
+#include "tands.h"
 
 using namespace std;
+
 
 int main(int argc, char *argv[]) {
     //for the server, we only need to specify a port number
@@ -59,7 +62,10 @@ int main(int argc, char *argv[]) {
         cerr << "Error accepting request from client!" << endl;
         exit(1);
     }
+
+    cout << "Using port " << port << endl; 
     cout << "Connected with client!" << endl;
+
     //lets keep track of the session time
     struct timeval start1, end1;
     gettimeofday(&start1, NULL);

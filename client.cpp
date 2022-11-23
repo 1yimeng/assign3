@@ -14,6 +14,8 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <fstream>
+#include <limits.h>
+#include "tands.h"
 
 using namespace std;
 
@@ -44,6 +46,13 @@ int main(int argc, char *argv[]) {
         cout<<"Error connecting to socket!"<<endl;
         return -1;
     }
+
+    char hostname[HOST_NAME_MAX];
+    gethostname(hostname, HOST_NAME_MAX);
+    pid_t pid = getpid();
+    cout << "Using port " << port << endl;
+    cout << "Using server address " << serverIp << endl;
+    cout << "Host " << hostname << "." << pid << endl;
 
     cout << "Connected to the server!" << endl;
     int bytesRead, bytesWritten = 0;
