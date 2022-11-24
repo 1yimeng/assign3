@@ -20,7 +20,6 @@
 
 using namespace std;
 
-
 int main(int argc, char *argv[]) {
     //for the server, we only need to specify a port number
     //grab the port number
@@ -72,26 +71,35 @@ int main(int argc, char *argv[]) {
     //also keep track of the amount of data sent as well
     int bytesRead, bytesWritten = 0;
     int jobNum = 0;
+
+    //receive a message from the client (listen)
+    memset(&msg, 0, sizeof(msg));//clear the buffer
+    recv(newSd, (char*)&msg, sizeof(msg), 0);
+
+    char hostname_pid[20];
+    strcpy(hostname_pid, msg);
+
     while(1) {
-        //receive a message from the client (listen)
+        //receive the job from the client (listen)
         memset(&msg, 0, sizeof(msg));//clear the buffer
         recv(newSd, (char*)&msg, sizeof(msg), 0);
         jobNum += 1;
-        printf("%10.2f: #%3d (%4s) from client\n", get_time(), jobNum, msg);
+        printf("%10.2f: #%3d (%4s) from %s\n", get_time(), jobNum, msg, hostname_pid);
 
+        // Trans(n);
+        // send client the job id
         string data = to_string(jobNum); 
         memset(&msg, 0, sizeof(msg)); //clear the buffer
         strcpy(msg, data.c_str());
-
         send(newSd, (char*)&msg, strlen(msg), 0);
-        printf("%10.2f: #%3d (Done) from client\n", get_time(), jobNum);
+        printf("%10.2f: #%3d (Done) from %s\n", get_time(), jobNum, hostname_pid);
     }
+
     //we need to close the socket descriptors after we're all done
-    gettimeofday(&end1, NULL);
     close(newSd);
     close(serverSd);
-    cout << "********Session********" << endl;
-    cout << "Connection closed..." << endl;
+    cout << "Summary" << endl;
+    printf("%3d transactions from %s", jobNum, hostname_pid);
 
     return 0;   
 }

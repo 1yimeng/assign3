@@ -53,7 +53,13 @@ int main(int argc, char *argv[]) {
     pid_t pid = getpid();
     cout << "Using port " << port << endl;
     cout << "Using server address " << serverIp << endl;
-    cout << "Host " << hostname << "." << pid << endl;
+    string hostname_pid = get_host_id(hostname, pid);
+    cout << "Host " << hostname_pid << endl;
+
+    // send the name and p_id to server 
+    memset(&msg, 0, sizeof(msg));//clear the buffer
+    strcpy(msg, hostname_pid.c_str());
+    send(clientSd, (char*)&msg, strlen(msg), 0);
 
     int bytesRead, bytesWritten = 0;
     struct timeval start1, end1;
@@ -82,11 +88,10 @@ int main(int argc, char *argv[]) {
         } else if (data[0] == 'S') {
             printf("Sleep %3d units\n", num);
             // Sleep(num);
-        } 
+        }
     }
 
     close(clientSd);
-    cout << "********Session********" << endl;
     printf("Sent %d transactions\n", totalTrans);
 
     return 0;    
