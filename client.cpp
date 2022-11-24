@@ -16,6 +16,7 @@
 #include <fstream>
 #include <limits.h>
 #include "tands.h"
+#include "helper.h"
 
 using namespace std;
 
@@ -54,38 +55,39 @@ int main(int argc, char *argv[]) {
     cout << "Using server address " << serverIp << endl;
     cout << "Host " << hostname << "." << pid << endl;
 
-    cout << "Connected to the server!" << endl;
     int bytesRead, bytesWritten = 0;
     struct timeval start1, end1;
-    gettimeofday(&start1, NULL);
-    while(1) {
-        cout << ">";
-        string data;
-        getline(cin, data);
+
+    string data;
+    int totalTrans = 0;
+
+    while(getline(cin, data)) {
         memset(&msg, 0, sizeof(msg));//clear the buffer
         strcpy(msg, data.c_str());
-        if(data == "exit") {
+
+        string strNum = data.substr(1, data.length()-1);
+        int num = stoi(strNum);
+
+        if (data[0] == 'T') {
             send(clientSd, (char*)&msg, strlen(msg), 0);
-            break;
-        }
-        bytesWritten += send(clientSd, (char*)&msg, strlen(msg), 0);
-        cout << "Awaiting server response..." << endl;
-        memset(&msg, 0, sizeof(msg));//clear the buffer
-        bytesRead += recv(clientSd, (char*)&msg, sizeof(msg), 0);
-        if(!strcmp(msg, "exit")) {
-            cout << "Server has quit the session" << endl;
-            break;
-        }
-        cout << "Server: " << msg << endl;
+            printf("%10.2f: Send (%s)\n", get_time(), msg);
+
+            memset(&msg, 0, sizeof(msg));//clear the buffer
+            recv(clientSd, (char*)&msg, sizeof(msg), 0);
+
+            // msg is message from client 
+            printf("%10.2f: Recv (%1s%s)\n", get_time(), "D", msg);
+            totalTrans += 1;
+
+        } else if (data[0] == 'S') {
+            printf("Sleep %3d units\n", num);
+            // Sleep(num);
+        } 
     }
-    gettimeofday(&end1, NULL);
+
     close(clientSd);
     cout << "********Session********" << endl;
-    cout << "Bytes written: " << bytesWritten << 
-    " Bytes read: " << bytesRead << endl;
-    cout << "Elapsed time: " << (end1.tv_sec- start1.tv_sec) 
-      << " secs" << endl;
-    cout << "Connection closed" << endl;
+    printf("Sent %d transactions\n", totalTrans);
 
     return 0;    
 }

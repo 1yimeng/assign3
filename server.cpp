@@ -16,6 +16,7 @@
 #include <fstream>
 #include <ctime>
 #include "tands.h"
+#include "helper.h"
 
 using namespace std;
 
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]) {
         cerr << "Error binding socket to local address" << endl;
         exit(0);
     }
-    cout << "Waiting for a client to connect..." << endl;
+
     //listen for up to 5 requests at a time
     listen(serverSd, 5);
     //receive a request from client using accept
@@ -64,46 +65,32 @@ int main(int argc, char *argv[]) {
     }
 
     cout << "Using port " << port << endl; 
-    cout << "Connected with client!" << endl;
 
     //lets keep track of the session time
     struct timeval start1, end1;
     gettimeofday(&start1, NULL);
     //also keep track of the amount of data sent as well
     int bytesRead, bytesWritten = 0;
+    int jobNum = 0;
     while(1) {
         //receive a message from the client (listen)
-        cout << "Awaiting client response..." << endl;
         memset(&msg, 0, sizeof(msg));//clear the buffer
-        bytesRead += recv(newSd, (char*)&msg, sizeof(msg), 0);
-        if(!strcmp(msg, "exit"))
-        {
-            cout << "Client has quit the session" << endl;
-            break;
-        }
-        cout << "Client: " << msg << endl;
-        cout << ">";
-        string data;
-        getline(cin, data);
+        recv(newSd, (char*)&msg, sizeof(msg), 0);
+        jobNum += 1;
+        printf("%10.2f: #%3d (%4s) from client\n", get_time(), jobNum, msg);
+
+        string data = to_string(jobNum); 
         memset(&msg, 0, sizeof(msg)); //clear the buffer
         strcpy(msg, data.c_str());
-        if(data == "exit")
-        {
-            //send to the client that server has closed the connection
-            send(newSd, (char*)&msg, strlen(msg), 0);
-            break;
-        }
-        //send the message to client
-        bytesWritten += send(newSd, (char*)&msg, strlen(msg), 0);
+
+        send(newSd, (char*)&msg, strlen(msg), 0);
+        printf("%10.2f: #%3d (Done) from client\n", get_time(), jobNum);
     }
     //we need to close the socket descriptors after we're all done
     gettimeofday(&end1, NULL);
     close(newSd);
     close(serverSd);
     cout << "********Session********" << endl;
-    cout << "Bytes written: " << bytesWritten << " Bytes read: " << bytesRead << endl;
-    cout << "Elapsed time: " << (end1.tv_sec - start1.tv_sec) 
-        << " secs" << endl;
     cout << "Connection closed..." << endl;
 
     return 0;   
