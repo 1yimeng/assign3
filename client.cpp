@@ -52,10 +52,11 @@ int main(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX];
     gethostname(hostname, HOST_NAME_MAX);
     pid_t pid = getpid();
-    cout << "Using port " << port << endl;
-    cout << "Using server address " << serverIp << endl;
+
+    printf("Using port %d\n", port);
+    printf("Using server address %s\n", serverIp);
     string hostname_pid = get_host_id(hostname, pid);
-    cout << "Host " << hostname_pid << endl;
+    printf("Host %s\n", hostname_pid.c_str());
 
     int bytesRead, bytesWritten = 0;
     struct timeval start1, end1;

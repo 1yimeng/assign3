@@ -203,7 +203,7 @@ int main(int argc , char *argv[]) {
                     printf("%10.2f: #%3d (Done) from %s\n", get_time(), jobNum, hostname_pid);
 
                     end = get_time();
-                    timeout.tv_sec = 7; 
+                    // timeout.tv_sec = 20; 
                 }  
             }  
         }  
