@@ -213,12 +213,13 @@ int main(int argc , char *argv[]) {
 
     int total_job = 1;
     double sec; 
-    printf("Summary");
+    printf("Summary\n");
     for (auto const& job : all_jobs) {
+        total_job += job.second;
         printf("%d transactions from %s\n", job.second, job.first);
     }
 
-    sec = (end-begin) / (double) total_job;
+    sec = (double) total_job / (end-begin);
     printf("%4.1f transactions/sec\n", sec);
     return 0;  
 }  
