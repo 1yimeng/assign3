@@ -3,8 +3,8 @@ all: server client
 server: server.o tands.o helper.o
 	g++ -o server server.o helper.o tands.o
 
-server.o: server1.cpp
-	g++ -O3 -c server1.cpp -o server.o -std=c++11
+server.o: server.cpp
+	g++ -O3 -c server.cpp -o server.o -std=c++11
 
 client: client.o tands.o helper.o
 	g++ -o client client.o helper.o tands.o
@@ -19,4 +19,4 @@ tands.o: tands.cpp
 	g++ -O3 -c tands.cpp -o tands.o -std=c++11
 
 clean: 
-	rm -f *.o client server 
+	rm -f *.o client server *.log

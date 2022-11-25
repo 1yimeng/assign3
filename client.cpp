@@ -52,11 +52,15 @@ int main(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX];
     gethostname(hostname, HOST_NAME_MAX);
     pid_t pid = getpid();
-
-    printf("Using port %d\n", port);
-    printf("Using server address %s\n", serverIp);
     string hostname_pid = get_host_id(hostname, pid);
-    printf("Host %s\n", hostname_pid.c_str());
+
+    string file_name = hostname_pid + ".log";
+    const char* cFile_name = file_name.c_str();
+    FILE* pFile = fopen(cFile_name, "w");
+
+    fprintf(pFile, "Using port %d\n", port);
+    fprintf(pFile, "Using server address %s\n", serverIp);
+    fprintf(pFile, "Host %s\n", hostname_pid.c_str());
 
     int bytesRead, bytesWritten = 0;
     struct timeval start1, end1;
@@ -76,23 +80,23 @@ int main(int argc, char *argv[]) {
             strcpy(msg, all.c_str()); 
             strcpy(input, data.c_str());
             send(clientSd, (char*)&msg, strlen(msg), 0);
-            printf("%10.2f: Send (%s)\n", get_time(), input);
+            fprintf(pFile, "%10.2f: Send (%s)\n", get_time(), input);
 
             memset(&msg, 0, sizeof(msg));//clear the buffer
             recv(clientSd, (char*)&msg, sizeof(msg), 0);
 
             // msg is message from client 
-            printf("%10.2f: Recv (%1s%s)\n", get_time(), "D", msg);
+            fprintf(pFile, "%10.2f: Recv (%1s%s)\n", get_time(), "D", msg);
             totalTrans += 1;
 
         } else if (data[0] == 'S') {
-            printf("Sleep %3d units\n", num);
-            // Sleep(num);
+            fprintf(pFile, "Sleep %3d units\n", num);
+            Sleep(num);
         }
     }
 
     close(clientSd);
-    printf("Sent %d transactions\n", totalTrans);
-
+    fprintf(pFile, "Sent %d transactions\n", totalTrans);
+    fclose(pFile);
     return 0;    
 }
