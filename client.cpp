@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     string hostname_pid = get_host_id(hostname, pid);
     cout << "Host " << hostname_pid << endl;
 
-    // send the name and p_id to server 
+    // // send the name and p_id to server 
     memset(&msg, 0, sizeof(msg));//clear the buffer
     strcpy(msg, hostname_pid.c_str());
     send(clientSd, (char*)&msg, strlen(msg), 0);
