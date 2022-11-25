@@ -11,34 +11,23 @@
 #include <string>
 #include <map>
 #include <iostream>
-#include <vector>
 #include <time.h>
+#include <limits.h>
 #include "tands.h"
 #include "helper.h"
      
 #define TRUE   1 
 #define FALSE  0 
 
-struct connect_info {
-    int socket;
-    char hostname_pid[20];
-    int trans;
-};
-
-struct summary_info {
-    char hostname_pid[20];
-    int trans;
-};
-
 int main(int argc , char *argv[]) {  
     int port = atoi(argv[1]);
     int opt = TRUE;  
     int master_socket , addrlen , new_socket, 
           max_clients = 30 , activity, i , valread , sd, jobNum = 0;  
-    connect_info client_socket[30];
+    int client_socket[30];
+    map<char*, int> all_jobs;
     int max_sd;  
     struct sockaddr_in address;  
-    vector<summary_info> summary;
     bool first = true;
     double begin = 0, end = 0;
     struct timeval timeout;
@@ -53,7 +42,7 @@ int main(int argc , char *argv[]) {
     //initialise all client_socket[] to 0 so not checked 
     for (i = 0; i < max_clients; i++)  
     {  
-        client_socket[i].socket = 0;  
+        client_socket[i] = 0;  
     }  
          
     //create a master socket 
@@ -77,7 +66,7 @@ int main(int argc , char *argv[]) {
     address.sin_addr.s_addr = INADDR_ANY;  
     address.sin_port = htons(port);  
          
-    //bind the socket to localhost port 8888 
+    //bind the socket to port
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)  
     {  
         perror("bind failed");  
@@ -108,7 +97,7 @@ int main(int argc , char *argv[]) {
         for ( i = 0 ; i < max_clients ; i++)  
         {  
             //socket descriptor 
-            sd = client_socket[i].socket;  
+            sd = client_socket[i];  
                  
             //if valid socket descriptor then add to read list 
             if(sd > 0)  
@@ -144,17 +133,15 @@ int main(int argc , char *argv[]) {
             }  
              
             //inform user of socket number - used in send and receive commands 
-            printf("New connection");  
+            printf("New connection");
                  
             //add new socket to array of sockets 
             for (i = 0; i < max_clients; i++)  
             {  
                 //if position is empty 
-                if( client_socket[i].socket == 0 )  
+                if( client_socket[i] == 0 )  
                 {  
-                    client_socket[i].socket = new_socket; 
-                    client_socket[i].hostname_pid[0] = '0'; 
-                    client_socket[i].trans = 0;
+                    client_socket[i] = new_socket; 
                     printf("Adding to list of sockets as %d\n" , i);  
                     break;  
                 }  
@@ -164,13 +151,13 @@ int main(int argc , char *argv[]) {
         //else its some IO operation on some other socket
         for (i = 0; i < max_clients; i++)  
         {  
-            sd = client_socket[i].socket;  
+            sd = client_socket[i];  
                  
             if (FD_ISSET( sd , &readfds))  
             {  
                 //Check if it was for closing , and also read the 
                 //incoming message 
-                if ((valread = read( sd , message, 1024)) == 0)  
+                if ((valread = recv(sd, (char*)&message, sizeof(message), 0)) == 0)  
                 {  
                     //Somebody disconnected , get his details and print 
                     getpeername(sd , (struct sockaddr*)&address , \
@@ -179,11 +166,7 @@ int main(int argc , char *argv[]) {
                          
                     //Close the socket and mark as 0 in list for reuse 
                     close( sd );  
-                    client_socket[i].socket = 0; 
-                    summary_info end;
-                    strcpy(end.hostname_pid, client_socket[i].hostname_pid);
-                    end.trans = client_socket[i].trans;
-                    summary.push_back(end);
+                    client_socket[i] = 0; 
                 }  
                      
                 //Echo back the message that came in 
@@ -197,24 +180,30 @@ int main(int argc , char *argv[]) {
                         first = false;
                         begin = get_time();
                     }
-
-                    // getting the hostname and process id
-                    if (client_socket[i].hostname_pid[0] == '0') {
-                        strcpy(client_socket[i].hostname_pid, message);
-                        continue;
+                    
+                    char hostname_pid[HOST_NAME_MAX+12];
+                    int n;
+                    sscanf(message, "%s %d", hostname_pid, &n);
+                    
+                    if (all_jobs.find(hostname_pid) == all_jobs.end()) {
+                        // first transaction ever
+                        all_jobs[hostname_pid] = 1;
+                    } else {
+                        all_jobs[hostname_pid] += 1;
                     }
 
-                    client_socket[i].trans += 1;
                     jobNum += 1;
-                    printf("%10.2f: #%3d (%4s) from %s\n", get_time(), jobNum, message, client_socket[i].hostname_pid);
+                    printf("%10.2f: #%3d (T%3d) from %s\n", get_time(), jobNum, n, hostname_pid);
                     
+                    Trans(n);
+
                     string data = to_string(jobNum); 
                     strcpy(message, data.c_str());
                     send(sd, message, strlen(message), 0);
-                    printf("%10.2f: #%3d (Done) from %s\n", get_time(), jobNum, client_socket[i].hostname_pid);
+                    printf("%10.2f: #%3d (Done) from %s\n", get_time(), jobNum, hostname_pid);
 
                     end = get_time();
-                    timeout.tv_sec = 5; 
+                    timeout.tv_sec = 7; 
                 }  
             }  
         }  
@@ -222,25 +211,14 @@ int main(int argc , char *argv[]) {
 
     close(master_socket);
 
-    int total_job;
-    double sec;
-
-    for (i = 0; i < max_clients; i++) { 
-        if (client_socket[i].hostname_pid[0] != 0) {
-            summary_info end;
-            strcpy(end.hostname_pid, client_socket[i].hostname_pid);
-            end.trans = client_socket[i].trans;
-            summary.push_back(end);
-        }
-    }  
-
-    printf("Summary\n");
-    for (summary_info item : summary) {
-        total_job += item.trans;
-        printf("%d transactions from %s\n", item.trans, item.hostname_pid);
+    int total_job = 1;
+    double sec; 
+    printf("Summary");
+    for (auto const& job : all_jobs) {
+        printf("%d transactions from %s\n", job.second, job.first);
     }
 
-    sec = (begin-end) / (double) total_job;
-    printf("%.1f transactions/sec\n", sec);
+    sec = (end-begin) / (double) total_job;
+    printf("%4.1f transactions/sec\n", sec);
     return 0;  
 }  

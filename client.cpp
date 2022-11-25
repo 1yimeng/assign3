@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
 
     //create a message buffer 
     char msg[1500]; 
+    char input[1500];
 
     //setup a socket and connection tools 
     struct hostent* host = gethostbyname(serverIp); 
@@ -56,11 +57,6 @@ int main(int argc, char *argv[]) {
     string hostname_pid = get_host_id(hostname, pid);
     cout << "Host " << hostname_pid << endl;
 
-    // // send the name and p_id to server 
-    memset(&msg, 0, sizeof(msg));//clear the buffer
-    strcpy(msg, hostname_pid.c_str());
-    send(clientSd, (char*)&msg, strlen(msg), 0);
-
     int bytesRead, bytesWritten = 0;
     struct timeval start1, end1;
 
@@ -69,14 +65,17 @@ int main(int argc, char *argv[]) {
 
     while(getline(cin, data)) {
         memset(&msg, 0, sizeof(msg));//clear the buffer
-        strcpy(msg, data.c_str());
+        memset(&input, 0, sizeof(input));//clear the buffer
 
         string strNum = data.substr(1, data.length()-1);
         int num = stoi(strNum);
 
         if (data[0] == 'T') {
+            string all = hostname_pid + " " + strNum;
+            strcpy(msg, all.c_str()); 
+            strcpy(input, data.c_str());
             send(clientSd, (char*)&msg, strlen(msg), 0);
-            printf("%10.2f: Send (%s)\n", get_time(), msg);
+            printf("%10.2f: Send (%s)\n", get_time(), input);
 
             memset(&msg, 0, sizeof(msg));//clear the buffer
             recv(clientSd, (char*)&msg, sizeof(msg), 0);
