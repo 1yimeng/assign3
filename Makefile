@@ -1,5 +1,5 @@
-man: client.pdf server.pdf
 all: server client
+man: client.pdf server.pdf
 
 client.pdf:
 	groff -Tpdf -man client.man >client.pdf
@@ -26,4 +26,4 @@ tands.o: tands.cpp
 	g++ -O3 -c tands.cpp -o tands.o -std=c++11
 
 clean: 
-	rm -f *.o client server *.log
+	rm -f *.o client server *.log *.pdf
