@@ -1,4 +1,8 @@
+man: client.pdf server.pdf
 all: server client
+
+client.pdf:
+	groff -Tpdf -man client.man >client.pdf
 
 server.pdf:
 	groff -Tpdf -man server.man >server.pdf
