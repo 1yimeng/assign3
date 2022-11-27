@@ -1,0 +1,21 @@
+.TH SERVER 1 "NOVEMBER 2022"
+.SH NAME
+SERVER \- reads messages from client, use the message information to do transactions
+.SH SYNOPSIS
+.B server
+.I port
+.B
+.SH DESCRIPTION
+.B server
+waits for connection from one or multiple server(s) at a given 
+.I port 
+number, then it reads messages sent from servers to do transactions. The server also sends acknowledge messages to servers. The server quits after 30 seconds of idling and print all the exchanged messages to a log file.
+.SH EXAMPLE INPUT
+.B ./server
+.I 8000
+.PP
+This example is a server waiting for client to connect on port 8000
+.SH POSSIBLE ISSUE
+When connected server quits because of timeout, clients' behaviour is unexpected.
+.SH AUTHOR
+Yi Meng Wang

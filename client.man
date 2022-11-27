@@ -1,0 +1,21 @@
+.TH CLIENT 1 "NOVEMBER 2022"
+.SH NAME
+client \- reads user input from stdin and send requests to server
+.SH SYNOPSIS
+.B client
+.I port
+.I ip_address
+.B
+.SH DESCRIPTION
+.B client
+connects to server by using port and ip address from arguments, then it reads user input from stdin to either sleep or send transaction information to server. Client also reads acknowledge messages from server. The client outputs the exchanged messages to a log file.
+.SH EXAMPLE INPUT
+.B ./client
+.I 8000
+.I 127.0.0.1
+.PP
+This example is a client trying to connect to server using ip address of 127.0.0.1 and port number 8000
+.SH POSSIBLE ISSUE
+When connected server quits, client's behaviour is unexpected.
+.SH AUTHOR
+Yi Meng Wang
