@@ -1,5 +1,5 @@
 ACKNOWLEDGEMENT
-The code to set up server and client is from https://github.com/bozkurthan/Simple-TCP-Server-Client-CPP-Example and https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/. 
+The code to set up multi-connection server and client is from https://github.com/bozkurthan/Simple-TCP-Server-Client-CPP-Example and https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/. 
 The information I used on how to create man page is from https://liw.fi/manpages/. 
 
 I also consulted multiple StackOverflow pages, man pages, and lecture notes about how to use related functions and C++ operations.

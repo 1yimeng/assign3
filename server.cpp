@@ -22,7 +22,7 @@
 int main(int argc , char *argv[]) { 
     int port; 
     if (argv[1] != NULL) {
-        int port = atoi(argv[1]);
+        port = atoi(argv[1]);
     }
 
     int opt = TRUE;  
@@ -48,14 +48,12 @@ int main(int argc , char *argv[]) {
     fd_set readfds;  
      
     //initialise all client_socket[] to 0 so not checked 
-    for (i = 0; i < max_clients; i++)  
-    {  
+    for (i = 0; i < max_clients; i++) {  
         client_socket[i] = 0;  
     }  
          
     //create a master socket 
-    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)  
-    {  
+    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) {  
         perror("socket failed");  
         exit(EXIT_FAILURE);  
     }  
@@ -63,8 +61,7 @@ int main(int argc , char *argv[]) {
     //set master socket to allow multiple connections , 
     //this is just a good habit, it will work without this 
     if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, 
-          sizeof(opt)) < 0 )  
-    {  
+          sizeof(opt)) < 0 ) {  
         perror("setsockopt");  
         exit(EXIT_FAILURE);  
     }  
@@ -75,16 +72,14 @@ int main(int argc , char *argv[]) {
     address.sin_port = htons(port);  
          
     //bind the socket to port
-    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)  
-    {  
+    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0) {  
         perror("bind failed");  
         exit(EXIT_FAILURE);  
     }  
     fprintf(pFile, "Using port %d \n", port);  
          
     //try to specify maximum of 3 pending connections for the master socket 
-    if (listen(master_socket, 3) < 0)  
-    {  
+    if (listen(master_socket, 3) < 0) {  
         perror("listen");  
         exit(EXIT_FAILURE);  
     }  
@@ -92,8 +87,7 @@ int main(int argc , char *argv[]) {
     //accept the incoming connection 
     addrlen = sizeof(address);   
          
-    while(TRUE)  
-    {  
+    while(TRUE) {  
         //clear the socket set 
         FD_ZERO(&readfds);  
      
@@ -102,8 +96,7 @@ int main(int argc , char *argv[]) {
         max_sd = master_socket;  
              
         //add child sockets to set 
-        for ( i = 0 ; i < max_clients ; i++)  
-        {  
+        for ( i = 0 ; i < max_clients ; i++) {  
             //socket descriptor 
             sd = client_socket[i];  
                  
@@ -120,8 +113,7 @@ int main(int argc , char *argv[]) {
         //so wait indefinitely 
         activity = select( max_sd + 1 , &readfds , NULL , NULL , &timeout);  
 
-        if ((activity < 0) && (errno!=EINTR))  
-        {  
+        if ((activity < 0) && (errno!=EINTR)) {  
             fprintf(pFile, "select error");  
         }  
 
@@ -131,21 +123,17 @@ int main(int argc , char *argv[]) {
              
         //If something happened on the master socket , 
         //then its an incoming connection 
-        if (FD_ISSET(master_socket, &readfds))  
-        {  
+        if (FD_ISSET(master_socket, &readfds)) {  
             if ((new_socket = accept(master_socket, 
-                    (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)  
-            {  
+                    (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {  
                 perror("accept");  
                 exit(EXIT_FAILURE);  
             }  
                  
             //add new socket to array of sockets 
-            for (i = 0; i < max_clients; i++)  
-            {  
+            for (i = 0; i < max_clients; i++) {  
                 //if position is empty 
-                if( client_socket[i] == 0 )  
-                {  
+                if( client_socket[i] == 0 ) {  
                     client_socket[i] = new_socket;  
                     break;  
                 }  
@@ -153,16 +141,13 @@ int main(int argc , char *argv[]) {
         }  
              
         //else its some IO operation on some other socket
-        for (i = 0; i < max_clients; i++)  
-        {  
+        for (i = 0; i < max_clients; i++) {  
             sd = client_socket[i];  
                  
-            if (FD_ISSET( sd , &readfds))  
-            {  
+            if (FD_ISSET( sd , &readfds)) {  
                 //Check if it was for closing , and also read the 
                 //incoming message 
-                if ((valread = recv(sd, (char*)&message, sizeof(message), 0)) == 0)  
-                {  
+                if ((valread = recv(sd, (char*)&message, sizeof(message), 0)) == 0) {  
                     //Somebody disconnected , get his details and print 
                     getpeername(sd , (struct sockaddr*)&address , \
                         (socklen_t*)&addrlen);  
@@ -173,34 +158,33 @@ int main(int argc , char *argv[]) {
                 }  
                      
                 //Echo back the message that came in 
-                else 
-                {   
+                else {   
                     //set the string terminating NULL byte on the end 
                     //of the data read  
                     message[valread] = '\0'; 
                     
+                    // get time if first time doing the transaction
                     if (first) {
                         first = false;
                         begin = get_time();
                     }
                     
                     char hostname_pid[HOST_NAME_MAX+12];
-                    // char* hostname_pid;
                     int n;
                     sscanf(message, "%s %d", hostname_pid, &n);
 
                     string sHostname_pid = hostname_pid;
+
+                    // record transaction numeber for each client
                     if (all_jobs.find(sHostname_pid) == all_jobs.end()) {
                         // first transaction ever
                         all_jobs[sHostname_pid] = 1;
-                        // cout << hostname_pid << endl;
                     } else {
                         all_jobs[sHostname_pid] += 1;
                     }
                     
-                    // memset(&hostname_pid, 0, sizeof(hostname_pid));
                     jobNum += 1;
-                    fprintf(pFile, "%10.2f: #%3d (T%3d) from %s\n", get_time(), jobNum, n, hostname_pid);
+                    fprintf(pFile, "%10.2f: #%3d (T%d) from %s\n", get_time(), jobNum, n, hostname_pid);
                     
                     Trans(n);
 
@@ -210,7 +194,9 @@ int main(int argc , char *argv[]) {
                     fprintf(pFile, "%10.2f: #%3d (Done) from %s\n", get_time(), jobNum, hostname_pid);
 
                     end = get_time();
-                    timeout.tv_sec = 5; 
+
+                    // updating to 30 seconds to renew the countdown time 
+                    timeout.tv_sec = 30; 
                 }  
             }  
         }  
@@ -221,6 +207,8 @@ int main(int argc , char *argv[]) {
     int total_job = 0;
     double sec; 
     fprintf(pFile, "Summary\n");
+
+    // print job results from all clients 
     for (auto const& job : all_jobs) {
         total_job += job.second;
         fprintf(pFile, "%d transactions from %s\n", job.second, job.first.c_str());

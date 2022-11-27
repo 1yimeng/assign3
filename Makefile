@@ -1,5 +1,8 @@
 all: server client
 
+server.pdf:
+	groff -Tpdf -man server.man >server.pdf
+
 server: server.o tands.o helper.o
 	g++ -o server server.o helper.o tands.o
 
