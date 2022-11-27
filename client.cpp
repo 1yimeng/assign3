@@ -25,7 +25,10 @@ int main(int argc, char *argv[]) {
     // we need 2 things: port number and ip address, in that order
     //grab the IP address and port number 
     char *serverIp = argv[2]; 
-    int port = atoi(argv[1]); 
+    int port;
+    if (argv[1] != NULL) {
+        port = atoi(argv[1]); 
+    }
 
     //create a message buffer 
     char msg[1500]; 
@@ -36,8 +39,11 @@ int main(int argc, char *argv[]) {
     sockaddr_in sendSockAddr;   
     bzero((char*)&sendSockAddr, sizeof(sendSockAddr)); 
     sendSockAddr.sin_family = AF_INET; 
-    sendSockAddr.sin_addr.s_addr = 
-        inet_addr(inet_ntoa(*(struct in_addr*)*host->h_addr_list));
+
+    if (host != NULL) {
+        sendSockAddr.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr*)*host->h_addr_list));
+    }
+
     sendSockAddr.sin_port = htons(port);
     int clientSd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -62,21 +68,28 @@ int main(int argc, char *argv[]) {
     fprintf(pFile, "Using server address %s\n", serverIp);
     fprintf(pFile, "Host %s\n", hostname_pid.c_str());
 
-    int bytesRead, bytesWritten = 0;
     struct timeval start1, end1;
 
     string data;
     int totalTrans = 0;
+    string all;
+    string strNum;
+    int num;
 
     while(getline(cin, data)) {
         memset(&msg, 0, sizeof(msg));//clear the buffer
         memset(&input, 0, sizeof(input));//clear the buffer
 
-        string strNum = data.substr(1, data.length()-1);
-        int num = stoi(strNum);
+        if (data.length() > 1) {
+            strNum = data.substr(1, data.length()-1);
+        }
+
+        if (!strNum.empty()) {
+            num = stoi(strNum);
+        }
 
         if (data[0] == 'T') {
-            string all = hostname_pid + " " + strNum;
+            all = hostname_pid + " " + strNum;
             strcpy(msg, all.c_str()); 
             strcpy(input, data.c_str());
             send(clientSd, (char*)&msg, strlen(msg), 0);

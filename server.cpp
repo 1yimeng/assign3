@@ -19,8 +19,12 @@
 #define TRUE   1 
 #define FALSE  0 
 
-int main(int argc , char *argv[]) {  
-    int port = atoi(argv[1]);
+int main(int argc , char *argv[]) { 
+    int port; 
+    if (argv[1] != NULL) {
+        int port = atoi(argv[1]);
+    }
+
     int opt = TRUE;  
     int master_socket , addrlen , new_socket, 
           max_clients = 30 , activity, i , valread , sd, jobNum = 0;  
@@ -38,7 +42,7 @@ int main(int argc , char *argv[]) {
         
     char message[1025];  //data buffer of 1K 
     
-    timeout.tv_sec = 100; 
+    timeout.tv_sec = 30; 
     timeout.tv_usec = 0;
     //set of socket descriptors 
     fd_set readfds;  
